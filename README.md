@@ -6,6 +6,7 @@ Sovelluksen ominaisuuksia:
 
     - Käyttäjä voi kirjautua sisään ja ulos sekä luoda uuden tunnuksen.
     - Käyttäjä näkee sovelluksen etusivulla listan alueista sekä jokaisen alueen ketjujen ja viestien määrän ja viimeksi lähetetyn viestin ajankohdan.
+    - Käyttäjä voi luoda uuden keskustelualueen.
     - Käyttäjä voi luoda alueelle uuden ketjun antamalla ketjun otsikon, joka toimii aloitusviestinä.
     - Käyttäjä voi kirjoittaa uuden viestin olemassa olevaan ketjuun.
     - Käyttäjä voi muokata luomansa ketjun otsikkoa/aloitusviestiä sekä lähettämänsä viestien sisältöä. Käyttäjä voi myös poistaa ketjun tai viestin.
