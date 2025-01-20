@@ -1,0 +1,27 @@
+<p>HEI, <b>{{ session.username }}</b></p>
+<a href="/logout"><b>Kirjaudu ulos</b></a>
+<br>
+<br>
+<form action="/search" method="POST">
+  <label for="msg">Hae viestejä:</label>
+  <input type="text" id="msg" name="message">
+  <input type="submit" value="Hae">
+</form>
+<br>
+{% for c in content %}
+ALUE: <b>{{ c.subject }}</b> (luonut: {{ c.creator }})<br>
+KETJUT: {{ c.threadsum }} <br>
+VIESTIEN MÄÄRÄ: {{ c.messagesum }} <br>
+UUSIN VIESTI: {{ c.lastsent }} <br>
+<a href="/subject/{{ c.subjectid }}">Siirry</a>
+<hr>
+{% endfor %}
+<br>
+<form action="/add" method="POST">
+  Lisää uusi alue (korkeintaan 30 kirjainta):
+  <input type="text" name="content" minlength="2" maxlength="30">
+  <input type="hidden" name="level" value="subject">
+  <input type="hidden" name="uname" value={{ session.username }}>
+  <br>
+  <input type="submit" value="Lisää">
+</form>

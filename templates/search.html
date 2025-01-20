@@ -1,0 +1,8 @@
+<p>HEI, <b>{{ session.username }}</b></p>
+<a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+<a href="/frontpage">Etusivu</a>
+<br><br>
+{% for s in content %}
+Ketju: {{ s.tname }} <br>
+<a href="/thread/{{ s.tid }}">Siirry</a> <br><br>
+{% endfor %}
