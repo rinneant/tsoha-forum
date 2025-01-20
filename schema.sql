@@ -30,3 +30,8 @@ CREATE TABLE messages (
     visible BOOLEAN DEFAULT TRUE
 );
 
+CREATE TABLE secrets (
+    id SERIAL PRIMARY KEY,
+    subject_id INTEGER REFERENCES subjects,
+    user_id INTEGER REFERENCES users
+);
