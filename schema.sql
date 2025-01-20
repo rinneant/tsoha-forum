@@ -30,13 +30,3 @@ CREATE TABLE messages (
     visible BOOLEAN DEFAULT TRUE
 );
 
-
-
-'''
-###Tee rekisteröinnissä pieni ruudukko, johon voi kirjoittaa koodin, jolla voi saada admin-oikeudet, jos koodit täsmäävät###
-##Admin voi luoda salaisen alueen, ja valita listasta kaikki ne käyttäjät, jotka voivat nähdä alueen##
-# Pitää olla mahdollisuus luoda uusi alue, ketju ja lisätä teksti, jos koko keskusteluforumi on tyhjä#
-Lisää user_id referenssi subjects, threads ja messages taulukoihin. Lisää näihin kolmeen edellämainittuun, kuka ne on luonut/lähettänyt.
-'''
-
-
