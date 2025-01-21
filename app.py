@@ -10,7 +10,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.secret_key = getenv("SECRET_KEY")
-#app.admin = getenv("ADMIN_PASS")
+app.admin = getenv("ADMIN_PASS")
 db = SQLAlchemy(app)
 
 @app.route("/")
@@ -36,17 +36,23 @@ def login():
 
 @app.route("/register", methods=["POST"])
 def register():
+    admin = False
     username = request.form["username"]
     password = request.form["password1"]
     password2 = request.form["password2"]
+    adminrights = request.form["admin"]
+    if adminrights != "NONE" and adminrights != app.admin:
+        return render_template("error.html", message="Admin salasana oli väärä!")
     if password != password2:
         return render_template("error.html", message="Salasanat eivät täsmää.")
+    if adminrights == app.admin:
+        admin = True
     sqlusers = text("SELECT count(username) FROM users WHERE username=:username")
     vastaus = db.session.execute(sqlusers, {"username":username})
     if vastaus.fetchone()[0] == 0:
         hash_value = generate_password_hash(password)
-        sql = text("INSERT INTO users (username, password) VALUES (:username, :password)")
-        db.session.execute(sql, {"username":username, "password":hash_value})
+        sql = text("INSERT INTO users (username, password, admin) VALUES (:username, :password, :admin)")
+        db.session.execute(sql, {"username":username, "password":hash_value, "admin":admin})
         db.session.commit()
         session["username"] = username
         return redirect("/")
