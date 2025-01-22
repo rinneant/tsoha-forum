@@ -42,7 +42,7 @@ def register():
     password2 = request.form["password2"]
     adminrights = request.form["admin"]
     if adminrights != "NONE" and adminrights != app.admin:
-        return render_template("error.html", message="Admin salasana oli väärä!")
+        return render_template("error.html", message="Admin salasana oli väärä! Rekisteröidy uudestaan")
     if password != password2:
         return render_template("error.html", message="Salasanat eivät täsmää.")
     if adminrights == app.admin:
@@ -180,15 +180,19 @@ def modify():
 
 @app.route("/delete", methods=["POST"])
 def delete():
+    admin = False
     level = request.form["level"]
     sessionuser = request.form["username"]
     createduser = request.form["creator"]
-    if sessionuser != createduser:
-        return render_template("error.html", message="Et voi poistaa ketjua, koska et ole luonut sitä.")
+    sqladmin = text("SELECT admin FROM users WHERE username = :sessionuser")
+    if db.session.execute(sqladmin, {"sessionuser":sessionuser}).fetchone()[0] == True:
+        admin = True
+    if sessionuser != createduser and admin == False:
+        return render_template("error.html", message="Et voi poistaa ketjua, koska et ole luonut sitä etkä ole admin.")
     if level == "T":
         tid = request.form["thread"]
         sid = request.form["subject"]
-        if sessionuser == createduser:
+        if sessionuser == createduser or admin == True:
             sql = text("UPDATE threads SET visible = FALSE WHERE id = :tid")
             db.session.execute(sql, {"tid":tid})
             db.session.commit()
@@ -196,7 +200,7 @@ def delete():
     if level == "M":
         mid = request.form["message"]
         tid = request.form["thread"]
-        if sessionuser == createduser:
+        if sessionuser == createduser or admin == True:
             sql = text("UPDATE messages SET visible = FALSE WHERE id = :mid")
             db.session.execute(sql, {"mid": mid})
             db.session.commit()
