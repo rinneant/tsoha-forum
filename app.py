@@ -59,6 +59,13 @@ def register():
     else:
         return render_template("error.html", message="Käyttäjätunnus on jo käytössä.")
 
+@app.route("/isadmin")
+def isadmin():
+    user = session["username"]
+    sql = text("SELECT admin FROM users WHERE username = :user")
+    admin = db.session.execute(sql, {"user":user}).fetchone()[0]
+    return admin
+
 @app.route("/logout")
 def logout():
     del session["username"]
@@ -87,14 +94,13 @@ def frontpage():
     count(info.mess) AS messagesum, MAX(info.time) AS lastsent FROM 
     (SELECT s.id AS subid, u.username AS uname, s.content AS sub, 
     t.content as thr, m.content as mess, m.created_at AS time FROM subjects s 
-    LEFT JOIN users u ON s.user_id = u.id AND s.visible = TRUE
+    JOIN users u ON s.user_id = u.id AND s.visible = TRUE AND s.secret = FALSE
     LEFT JOIN threads t ON s.id = t.subject_id AND t.visible = TRUE 
     LEFT JOIN messages m ON m.thread_id = t.id AND m.visible = TRUE 
     GROUP BY s.id, u.username, s.content, t.content, m.content, m.created_at ORDER BY s.content) AS info 
     GROUP BY info.sub, info.subid, info.uname ORDER BY info.sub''')
 
     cont = db.session.execute(sql).fetchall()
-
     return render_template("frontpage.html", content = cont)
 
 @app.route("/subject/<int:subjectid>")
@@ -209,8 +215,91 @@ def delete():
 @app.route("/search", methods=["POST"])
 def search():
     message = request.form["message"]
-    sql = text("SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t, messages m WHERE m.content ILIKE :message AND m.thread_id = t.id")
-    searching = db.session.execute(sql, {"message":f'%{message}%'}).fetchall()
-    if str(searching) == "[]":
-        return render_template("error.html", message="Hakusanalla ei löydy viestejä.")
-    return render_template("search.html", content=searching)
+    if isadmin():
+        sql = text("SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t, messages m WHERE m.content ILIKE :message AND m.thread_id = t.id")
+        searching = db.session.execute(sql, {"message":f'%{message}%'}).fetchall()
+        if str(searching) == "[]":
+            return render_template("error.html", message="Hakusanalla ei löydy viestejä.")
+        return render_template("search.html", content=searching)
+    else:
+        user = session["username"]
+        sqluserid = text("SELECT id FROM users WHERE username = :user")
+        userid = db.session.execute(sqluserid, {"user": user}).fetchone()[0]
+        sql = text('''SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t
+        JOIN users u ON t.user_id = u.id 
+        JOIN messages m ON m.content ILIKE :message AND m.thread_id = t.id 
+        JOIN subjects s ON t.subject_id = s.id
+        JOIN secrets sec ON sec.subject_id = s.id AND sec.user_id = :userid''')
+        searching = db.session.execute(sql, {"message":f'%{message}%', "userid":userid}).fetchall()
+        if str(searching) == "[]":
+            return render_template("error.html", message="Hakusanalla ei löydy viestejä.")
+        return render_template("search.html", content=searching)
+
+@app.route("/addsecret", methods=["POST"])
+def addsecret():
+    if isadmin():
+        user = session["username"]
+        sqluserid = text("SELECT id FROM users WHERE username = :user")
+        userid = db.session.execute(sqluserid, {"user":user}).fetchone()[0]
+        subjectname = request.form["content"]
+        subjectname = subjectname.upper()
+        comp = text("SELECT content FROM subjects WHERE content = :subjectname")
+        if str(db.session.execute(comp, {"subjectname":subjectname}).fetchall()) == "[]":
+            sql = text("INSERT INTO subjects (user_id, content, secret) VALUES (:userid, :subjectname, 'True')")
+            db.session.execute(sql, {"userid":userid, "subjectname":subjectname})
+            db.session.commit()
+            return redirect("/secretsubjects")
+    return render_template("error.html", message="Et ole admin!")
+
+@app.route("/newsecretmember", methods=["POST"])
+def newsecretmember():
+    if isadmin():
+        useraddname = request.form["user"]
+        subjectid = request.form["sid"]
+        sqluser = text("SELECT id FROM users WHERE username = :useraddname")
+        if str(db.session.execute(sqluser, {"useraddname":useraddname}).fetchall()) == "[]":
+            return render_template("error.html", message="Ei löydy kyseistä käyttäjää.")
+        userid = db.session.execute(sqluser, {"useraddname":useraddname}).fetchone()[0]
+        sqlduplicates = text("SELECT id FROM secrets WHERE subject_id = :subjectid AND user_id = :userid")
+        if db.session.execute(sqlduplicates, {"subjectid":subjectid, "userid":userid}).fetchone() == None:
+            sqlsecret = text("INSERT INTO secrets (subject_id, user_id) VALUES (:subjectid, :userid)")
+            db.session.execute(sqlsecret, {"subjectid": subjectid, "userid":userid})
+            db.session.commit()
+            return redirect("/secretsubjects")
+        return render_template("error.html", message="Käyttäjä on jo salaisella alueella.")
+    return render_template("error.html", message="Et voi lisätä käyttäjiä alueelle.")
+
+@app.route("/secretsubjects")
+def secretsubjects():
+    if isadmin():
+        sql = text('''SELECT info.sub AS subject, info.subid AS subjectid, info.uname AS creator, count(DISTINCT info.thr) AS threadsum, 
+        count(info.mess) AS messagesum, MAX(info.time) AS lastsent FROM 
+        (SELECT s.id AS subid, u.username AS uname, s.content AS sub, 
+        t.content as thr, m.content as mess, m.created_at AS time FROM subjects s 
+        JOIN users u ON s.user_id = u.id AND s.visible = TRUE AND s.secret = TRUE
+        LEFT JOIN threads t ON s.id = t.subject_id AND t.visible = TRUE 
+        LEFT JOIN messages m ON m.thread_id = t.id AND m.visible = TRUE 
+        GROUP BY s.id, u.username, s.content, t.content, m.content, m.created_at ORDER BY s.content) AS info 
+        GROUP BY info.sub, info.subid, info.uname ORDER BY info.sub''')
+        content = db.session.execute(sql).fetchall()
+        if str(content) == "[]":
+            return render_template("secret.html", content = "Ei salaisia keskustelualueita.")
+        return render_template("secret.html", content = content)
+    else:
+        user = session["username"]
+        sqluserid = text("SELECT id FROM users WHERE username = :user")
+        userid = db.session.execute(sqluserid, {"user":user}).fetchone()[0]
+        sql = text('''SELECT info.sub AS subject, info.subid AS subjectid, info.uname AS creator, count(DISTINCT info.thr) AS threadsum, 
+        count(info.mess) AS messagesum, MAX(info.time) AS lastsent FROM 
+        (SELECT s.id AS subid, u.username AS uname, s.content AS sub, 
+        t.content as thr, m.content as mess, m.created_at AS time FROM subjects s 
+        JOIN users u ON s.user_id = u.id AND s.visible = TRUE AND s.secret = TRUE
+        JOIN secrets sec ON sec.user_id = :userid AND sec.subject_id = s.id
+        LEFT JOIN threads t ON s.id = t.subject_id AND t.visible = TRUE 
+        LEFT JOIN messages m ON m.thread_id = t.id AND m.visible = TRUE 
+        GROUP BY s.id, u.username, s.content, t.content, m.content, m.created_at ORDER BY s.content) AS info 
+        GROUP BY info.sub, info.subid, info.uname ORDER BY info.sub''')
+        content = db.session.execute(sql, {"userid":userid}).fetchall()
+        if str(content) == "[]":
+            return render_template("secret.html", content = "Ei salaisia keskustelualueita.")
+        return render_template("secret.html", content = content)
