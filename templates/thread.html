@@ -1,34 +1,42 @@
-<a href="/logout"><b>Kirjaudu ulos</b></a> <br>
-<a href="/frontpage">Etusivu</a> <br>
+<!DOCTYPE html>
+<html>
 
-<p><b>{{ question }}</b> luonut: {{ creator }}</p>
-<hr>
-<hr>
-{% for c in content %}
-viesti: {{ c.message }} <br> <br>
-lähettäjä: {{ c.username }} <br>
-lähetetty: {{ c.time }} <br>
+<head>
+  <title>Viestit</title>
+</head>
 
-<form action="/modify" method="POST">
-  <input type="hidden" name="level" value="M">
-  <input type="hidden" name="username" value={{ session.username }}>
-  <input type="hidden" name="creator" value={{ c.username }}>
-  <input type="hidden" name="message" value= {{ c.messageid }}>
-  <input type="hidden" name="thread" value={{ thread_id }}>
-  <button type="submit">muokkaa</button>
-  <button type="submit" formaction="/delete">poista</button>
-</form>
-
-<hr>
-{% endfor %}
-<br>
-<form action="/add" method="POST">
-  Lisää uusi viesti (korkeintaan 700 merkkiä):<br>
-  <textarea name="content" rows="5" cols="60" minlength="5" maxlength="700"></textarea>
-  <input type="hidden" name="level" value="message">
-  <input type="hidden" name="tid" value={{ thread_id }}>
-  <input type="hidden" name="uname" value={{ session.username }}>
+<body>
+  <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+  <a href="/frontpage">Etusivu</a> <br>
+  <p><b>{{ question }}</b> luonut: {{ creator }}</p>
+  <hr> <hr>
+  {% for c in content %}
+  viesti: {{ c.message }} <br> <br>
+  lähettäjä: {{ c.username }} <br>
+  lähetetty: {{ c.time }} <br>
+  <form action="/modify" method="POST">
+    <input type="hidden" name="level" value="M">
+    <input type="hidden" name="username" value={{ session.username }}>
+    <input type="hidden" name="creator" value={{ c.username }}>
+    <input type="hidden" name="message" value= {{ c.messageid }}>
+    <input type="hidden" name="thread" value={{ thread_id }}>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <button type="submit">muokkaa</button>
+    <button type="submit" formaction="/delete">poista</button>
+  </form>
+  <hr>
+  {% endfor %}
   <br>
-  <input type="submit" value="Lisää">
-</form>
+  <form action="/add" method="POST">
+    Lisää uusi viesti (korkeintaan 700 merkkiä):<br>
+    <textarea name="content" rows="5" cols="60" minlength="5" maxlength="700"></textarea>
+    <input type="hidden" name="level" value="message">
+    <input type="hidden" name="tid" value={{ thread_id }}>
+    <input type="hidden" name="uname" value={{ session.username }}>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <br>
+    <input type="submit" value="Lisää">
+  </form>
+</body>
 
+</html>

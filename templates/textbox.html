@@ -1,9 +1,17 @@
-<form action="/add" method="POST">
-  Muokkaa omaa ketjuasi (raja 300 merkkiä)/viestiäsi (raja 700 merkkiä):<br>
-  <textarea name="allcontent" rows="5" cols="60" minlength="5" maxlength={{ len }}>{{ content }}</textarea>
-  <input type="hidden" name="level" value="modify">
-  <input type="hidden" name="tm" value={{ tm }}>
-  <input type="hidden" name="id" value={{ id }}>
-  <br>
-  <input type="submit" value="Muokkaa ketjua/viestiä">
-</form>
+<!DOCTYPE html>
+<html>
+
+<body>
+  <form action="/add" method="POST">
+    Muokkaa omaa ketjuasi (raja 300 merkkiä)/viestiäsi (raja 700 merkkiä):<br>
+    <textarea name="allcontent" rows="5" cols="60" minlength="5" maxlength={{ len }}>{{ content }}</textarea>
+    <input type="hidden" name="level" value="modify">
+    <input type="hidden" name="tm" value={{ tm }}>
+    <input type="hidden" name="id" value={{ id }}>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <br>
+    <input type="submit" value="Muokkaa ketjua/viestiä">
+  </form>
+</body>
+
+</html>

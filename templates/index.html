@@ -1,45 +1,44 @@
-<title>tsoha-forum</title>
-<h1>Tervetuloa keskustelufoorumille</h1>
+<!DOCTYPE html>
+<html>
 
-{% if session.username %}
+<head>
+  <title>tsoha-forum</title>
+</head>
 
-<p>Hei, {{ session.username }}</p>
-<a href="/frontpage">Siirry etusivulle</a>
-<br>
-<a href="/logout">Kirjaudu ulos</a>
+<body>
+  <h1>Tervetuloa keskustelufoorumille</h1>
+  {% if session.username %}
+  <p>Hei, {{ session.username }}</p>
+  <a href="/frontpage">Siirry etusivulle</a> <br>
+  <a href="/logout">Kirjaudu ulos</a>
+  {% else %}
+  <h2>Aloita kirjautumalla sisään tai rekisteröidy uudeksi käyttäjäksi.</h2>
+  <hr>
+  <h3>KIRJAUDU SISÄÄN</h3>
+  <form action="/login" method="POST">
+    <p>Tunnus:<br>
+    <input type="text" name="username" minlength="5" maxlength="20"></p>
+    <p>Salasana:<br>
+    <input type="password" name="password" minlength="8" maxlength="25"></p>
+    <input type="submit" value="Kirjaudu sisään">
+  </form>
+  <br> <br>
+  <h1>TAI</h1>
+  <br> <br>
+  <h3>Luo uusi käyttäjätili</h3>
+  <form action="/register" method="POST">
+    <p>Tunnus:<br>
+    <input type="text" name="username" minlength="5" maxlength="20"></p>
+    <p>Salasana:<br>
+    <input type="password" name="password1" minlength="8" maxlength="25"></p>
+    <p>Salasana uudelleen:<br>
+    <input type="password" name="password2" minlength="8" maxlength="25"></p>
+    <p>Admin oikeudet:<br>
+    <input type="text" name="admin" value="NONE"></p><br>
+    <input type="submit" value="Rekisteröidy">
+  </form>
+  <hr>
+  {% endif %}
+</body>
 
-{% else %}
-
-<h2>Aloita kirjautumalla sisään tai rekisteröidy uudeksi käyttäjäksi.</h2>
-<hr>
-<h3>KIRJAUDU SISÄÄN</h3>
-
-<form action="/login" method="POST">
-  <p>Tunnus:<br>
-  <input type="text" name="username" minlength="5" maxlength="20"></p>
-  <p>Salasana:<br>
-  <input type="password" name="password" minlength="8" maxlength="25"></p>
-  <input type="submit" value="Kirjaudu sisään">
-</form>
-
-<br>
-<br>
-<h1>TAI</h1>
-<br>
-<br>
-<h3>Luo uusi käyttäjätili</h3>
-
-<form action="/register" method="POST">
-  <p>Tunnus:<br>
-  <input type="text" name="username" minlength="5" maxlength="20"></p>
-  <p>Salasana:<br>
-  <input type="password" name="password1" minlength="8" maxlength="25"></p>
-  <p>Salasana uudelleen:<br>
-  <input type="password" name="password2" minlength="8" maxlength="25"></p>
-  <p>Admin oikeudet:<br>
-  <input type="text" name="admin" value="NONE"></p><br>
-  <input type="submit" value="Rekisteröidy">
-</form>
-
-<hr>
-{% endif %}
+</html>

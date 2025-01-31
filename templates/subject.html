@@ -1,31 +1,40 @@
-<a href="/logout"><b>Kirjaudu ulos</b></a> <br>
-<a href="/frontpage">Etusivu</a> <br>
+<!DOCTYPE html>
+<html>
 
-<h1>Kaikki ketjut:</h1>
-{% for c in content %}
-{{ c.threadname }} (luonut: {{ c.username }})
-<a href="/thread/{{ c.threadid }}"><b>Siirry</b></a> <br>
+<head>
+  <title>Ketjut</title>
+</head>
 
-<form action="/modify" method="POST">
-  <input type="hidden" name="level" value="T">
-  <input type="hidden" name="username" value={{ session.username }}>
-  <input type="hidden" name="creator" value={{ c.username }}>
-  <input type="hidden" name="thread" value= {{ c.threadid }}>
-  <input type="hidden" name="subject" value={{ subject_id }}>
-  <button type="submit">muokkaa</button>
-  <button type="submit" formaction="/delete">poista</button>
-</form>
-
-<br>
-{% endfor %}
-<br>
-<form action="/add" method="POST">
-  Lisää uusi ketju (korkeintaan 300 merkkiä):<br>
-  <textarea name="content" rows="3" cols="40" minlength="5" maxlength="300"></textarea>
-  <input type="hidden" name="level" value="thread">
-  <input type="hidden" name="sid" value={{ subject_id }}>
-  <input type="hidden" name="uname" value={{ session.username }}>
+<body>
+  <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+  <a href="/frontpage">Etusivu</a> <br>
+  <h1>Kaikki ketjut:</h1>
+  {% for c in content %}
+  {{ c.threadname }} (luonut: {{ c.username }})
+  <a href="/thread/{{ c.threadid }}"><b>Siirry</b></a> <br>
+  <form action="/modify" method="POST">
+    <input type="hidden" name="level" value="T">
+    <input type="hidden" name="username" value={{ session.username }}>
+    <input type="hidden" name="creator" value={{ c.username }}>
+    <input type="hidden" name="thread" value= {{ c.threadid }}>
+    <input type="hidden" name="subject" value={{ subject_id }}>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <button type="submit">muokkaa</button>
+    <button type="submit" formaction="/delete">poista</button>
+  </form>
   <br>
-  <input type="submit" value="Lisää">
-</form>
+  {% endfor %}
+  <br>
+  <form action="/add" method="POST">
+    Lisää uusi ketju (korkeintaan 300 merkkiä):<br>
+    <textarea name="content" rows="3" cols="40" minlength="5" maxlength="300"></textarea>
+    <input type="hidden" name="level" value="thread">
+    <input type="hidden" name="sid" value={{ subject_id }}>
+    <input type="hidden" name="uname" value={{ session.username }}>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <br>
+    <input type="submit" value="Lisää">
+  </form>
+</body>
 
+</html>
