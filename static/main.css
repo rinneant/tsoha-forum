@@ -1,0 +1,23 @@
+body {
+  margin: auto;
+  max-width: 60em;
+  font-family: serif;
+  background-color: slategray;
+}
+
+.header {
+  background-color: black;
+  color: indianred;
+}
+
+.nav {
+  background-color: lightblue;
+}
+
+.content {
+  background-color: beige;
+}
+
+.obs {
+  color: red;
+}
