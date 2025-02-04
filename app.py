@@ -5,7 +5,10 @@ from sqlalchemy.sql import text
 from os import getenv
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
+import secrets
 
+#Miten poistaa subject? silloin sen subjectin threadsit ja messaget ei saa näkyä
+#lisää delete subject admin oikeuksilla
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -19,7 +22,7 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.form["username"]
+    username = request.form["username"].lower()
     password = request.form["password"]
     sql = text("SELECT id, password FROM users WHERE username=:username")
     result = db.session.execute(sql, {"username":username})
@@ -30,6 +33,7 @@ def login():
         hash_value = user.password
         if check_password_hash(hash_value, password):
             session["username"] = username
+            session["csrf_token"] = secrets.token_hex(16)
             return redirect("/")
         else:
             return render_template("error.html", message="Salasana on väärä!")
@@ -37,7 +41,7 @@ def login():
 @app.route("/register", methods=["POST"])
 def register():
     admin = False
-    username = request.form["username"]
+    username = request.form["username"].lower()
     password = request.form["password1"]
     password2 = request.form["password2"]
     adminrights = request.form["admin"]
@@ -55,20 +59,25 @@ def register():
         db.session.execute(sql, {"username":username, "password":hash_value, "admin":admin})
         db.session.commit()
         session["username"] = username
+        session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
     else:
         return render_template("error.html", message="Käyttäjätunnus on jo käytössä.")
 
-@app.route("/isadmin")
 def isadmin():
     user = session["username"]
     sql = text("SELECT admin FROM users WHERE username = :user")
     admin = db.session.execute(sql, {"user":user}).fetchone()[0]
     return admin
 
+def check_csrf():
+    if request.form["csrf_token"] != session["csrf_token"]:
+        abort(403)
+
 @app.route("/logout")
 def logout():
     del session["username"]
+    del session["csrf_token"]
     return redirect("/")
 
 @app.route("/error")
@@ -120,9 +129,8 @@ def thread(threadid):
     return render_template("thread.html", content = cont, thread_id = threadid, question = threadname[0], creator = threadname[1])
 
 @app.route("/add", methods=["POST"])
-#Here are risks, because users can add multiple new random subjectnames without meaning
-#For instance "HAIHJDÖOJAIH", "AHIDGHÖOAJODHO", "AÖKD5583244"...
 def add():
+    check_csrf()
     level = request.form["level"]
     if level == "modify":
         time = datetime.now()
@@ -131,11 +139,16 @@ def add():
         id = request.form["id"]
         if tm == "t":
             sql = text("UPDATE threads SET content = :con WHERE id = :id")
+            db.session.execute(sql, {"con": con, "id": id})
+            db.session.commit()
+            return redirect(f"/thread/{id}")
         elif tm == "m":
+            sqltid = text("SELECT t.id FROM threads t, messages m WHERE t.id = m.thread_id AND m.id = :id")
+            tid = db.session.execute(sqltid, {"id":id}).fetchone()[0]
             sql = text("UPDATE messages SET content = :con WHERE id = :id")
-        db.session.execute(sql, {"con": con, "id": id})
-        db.session.commit()
-        return redirect("/frontpage")
+            db.session.execute(sql, {"con": con, "id": id})
+            db.session.commit()
+            return redirect(f"/thread/{tid}")
 
     content = request.form["content"]
     uname = request.form["uname"]
@@ -167,6 +180,7 @@ def add():
 
 @app.route("/modify", methods=["POST"])
 def modify():
+    check_csrf()
     sessionuser = request.form["username"]
     createduser = request.form["creator"]
     level = request.form["level"]
@@ -186,6 +200,7 @@ def modify():
 
 @app.route("/delete", methods=["POST"])
 def delete():
+    check_csrf()
     admin = False
     level = request.form["level"]
     sessionuser = request.form["username"]
@@ -212,31 +227,54 @@ def delete():
             db.session.commit()
             return redirect(f"/thread/{tid}")
 
+@app.route("/subjectdelete", methods=["POST"])
+def subjectdelete():
+    check_csrf()
+    if isadmin():
+        sname = request.form["subject"].upper()
+        sql = text("SELECT id FROM subjects WHERE content = :sname")
+        if str(db.session.execute(sql, {"sname":sname}).fetchall()) == "[]":
+            return render_template("error.html", message="Kyseistä aluetta ei löytynyt")
+        sql = text("UPDATE subjects SET visible = FALSE WHERE content = :sname")
+        db.session.execute(sql, {"sname":sname})
+        db.session.commit()
+        return redirect("/frontpage")
+    return render_template("error.html", message="Et ole admin!")
+
 @app.route("/search", methods=["POST"])
 def search():
+    check_csrf()
     message = request.form["message"]
     if isadmin():
-        sql = text("SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t, messages m WHERE m.content ILIKE :message AND m.thread_id = t.id")
+        sql = text('''SELECT DISTINCT t.id AS tid, t.content AS tname, s.content FROM threads t, messages m, subjects s WHERE 
+        m.content ILIKE :message AND m.thread_id = t.id AND t.subject_id = s.id AND s.visible = TRUE AND t.visible = TRUE AND m.visible = TRUE AND s.secret = FALSE''')
         searching = db.session.execute(sql, {"message":f'%{message}%'}).fetchall()
-        if str(searching) == "[]":
+        sqlsecret = text('''SELECT DISTINCT t.id AS tid, t.content AS tname, s.content FROM threads t, messages m, subjects s WHERE 
+        m.content ILIKE :message AND m.thread_id = t.id AND t.subject_id = s.id AND s.visible = TRUE AND t.visible = TRUE AND m.visible = TRUE AND s.secret = TRUE''')
+        secretsearching = db.session.execute(sqlsecret, {"message":f'%{message}%'}).fetchall()
+        if str(searching) == "[]" and str(secretsearching) == "[]":
             return render_template("error.html", message="Hakusanalla ei löydy viestejä.")
-        return render_template("search.html", content=searching)
+        return render_template("search.html", content=searching, secretcontent=secretsearching)
     else:
         user = session["username"]
         sqluserid = text("SELECT id FROM users WHERE username = :user")
         userid = db.session.execute(sqluserid, {"user": user}).fetchone()[0]
-        sql = text('''SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t
+        sql = text('''SELECT DISTINCT t.id AS tid, t.content AS tname, s.content FROM threads t, messages m, subjects s WHERE 
+        m.content ILIKE :message AND m.thread_id = t.id AND t.subject_id = s.id AND s.visible = TRUE AND t.visible = TRUE AND m.visible = TRUE AND s.secret = FALSE''')
+        searching = db.session.execute(sql, {"message":f'%{message}%', "userid":userid}).fetchall()
+        sqlsecret = text('''SELECT DISTINCT t.id AS tid, t.content AS tname FROM threads t
         JOIN users u ON t.user_id = u.id 
         JOIN messages m ON m.content ILIKE :message AND m.thread_id = t.id 
-        JOIN subjects s ON t.subject_id = s.id
+        JOIN subjects s ON t.subject_id = s.id AND s.visible = TRUE AND s.secret = TRUE
         JOIN secrets sec ON sec.subject_id = s.id AND sec.user_id = :userid''')
-        searching = db.session.execute(sql, {"message":f'%{message}%', "userid":userid}).fetchall()
-        if str(searching) == "[]":
+        secretsearching = db.session.execute(sqlsecret, {"message":f'%{message}%', "userid":userid}).fetchall()
+        if str(searching) == "[]" and str(secretsearching) == "[]":
             return render_template("error.html", message="Hakusanalla ei löydy viestejä.")
-        return render_template("search.html", content=searching)
+        return render_template("search.html", content=searching, secretcontent=secretsearching)
 
 @app.route("/addsecret", methods=["POST"])
 def addsecret():
+    check_csrf()
     if isadmin():
         user = session["username"]
         sqluserid = text("SELECT id FROM users WHERE username = :user")
@@ -253,6 +291,7 @@ def addsecret():
 
 @app.route("/newsecretmember", methods=["POST"])
 def newsecretmember():
+    check_csrf()
     if isadmin():
         useraddname = request.form["user"]
         subjectid = request.form["sid"]
@@ -283,7 +322,7 @@ def secretsubjects():
         GROUP BY info.sub, info.subid, info.uname ORDER BY info.sub''')
         content = db.session.execute(sql).fetchall()
         if str(content) == "[]":
-            return render_template("secret.html", content = "Ei salaisia keskustelualueita.")
+            return render_template("secret.html", alert = "Ei salaisia keskustelualueita", content = "")
         return render_template("secret.html", content = content)
     else:
         user = session["username"]
@@ -301,5 +340,6 @@ def secretsubjects():
         GROUP BY info.sub, info.subid, info.uname ORDER BY info.sub''')
         content = db.session.execute(sql, {"userid":userid}).fetchall()
         if str(content) == "[]":
-            return render_template("secret.html", content = "Ei salaisia keskustelualueita.")
+            return render_template("error.html", message = "Ei salaisia keskustelualueita.")
         return render_template("secret.html", content = content)
+
