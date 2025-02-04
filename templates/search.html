@@ -2,18 +2,37 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="/static/main.css">
   <title>Haku</title>
 </head>
 
 <body>
+<div class="content">
   <p>HEI, <b>{{ session.username }}</b></p>
-  <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
-  <a href="/frontpage">Etusivu</a>
+  <div class="nav">
+    <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+    <a href="/frontpage">Etusivu</a>
+  </div>
   <br><br>
-  {% for s in content %}
-  Ketju: {{ s.tname }} <br>
-  <a href="/thread/{{ s.tid }}">Siirry</a> <br><br>
+  <h3>Ketjut:</h3>
+  <br>
+  {% for c in content %}
+  Ketju: {{ c.tname }} <br>
+  <div class="nav">
+    <a href="/thread/{{ c.tid }}">Siirry</a>
+  </div>
+  <br><br>
   {% endfor %}
+  <h3>Salaiset ketjut</h3>
+  <br>
+  {% for s in secretcontent %}
+  Salainen ketju: {{ s.tname }} <br>
+  <div class="nav">
+    <a href="/thread/{{ s.tid }}">Siirry</a>
+  </div>
+  <br><br>
+  {% endfor %}
+</div>
 </body>
 
 </html>

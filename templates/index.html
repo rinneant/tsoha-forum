@@ -2,19 +2,29 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="/static/main.css">
   <title>tsoha-forum</title>
 </head>
 
 <body>
-  <h1>Tervetuloa keskustelufoorumille</h1>
+<div class="content">
+  <div class="header">
+    <h1>Tervetuloa keskustelufoorumille</h1>
+  </div>
   {% if session.username %}
   <p>Hei, {{ session.username }}</p>
-  <a href="/frontpage">Siirry etusivulle</a> <br>
-  <a href="/logout">Kirjaudu ulos</a>
+  <div class="nav">
+    <a href="/frontpage">Siirry etusivulle</a> <br>
+    <a href="/logout">Kirjaudu ulos</a>
+  </div>
   {% else %}
-  <h2>Aloita kirjautumalla sisään tai rekisteröidy uudeksi käyttäjäksi.</h2>
+  <div class="header">
+    <h2>Aloita kirjautumalla sisään tai rekisteröidy uudeksi käyttäjäksi.</h2>
+  </div>
   <hr>
-  <h3>KIRJAUDU SISÄÄN</h3>
+  <div class="header">
+    <h3>KIRJAUDU SISÄÄN</h3>
+  </div>
   <form action="/login" method="POST">
     <p>Tunnus:<br>
     <input type="text" name="username" minlength="5" maxlength="20"></p>
@@ -23,9 +33,13 @@
     <input type="submit" value="Kirjaudu sisään">
   </form>
   <br> <br>
-  <h1>TAI</h1>
+  <div class="header">
+    <h1>TAI</h1>
+  </div>
   <br> <br>
-  <h3>Luo uusi käyttäjätili</h3>
+  <div class="header">
+    <h3>Luo uusi käyttäjätili</h3>
+  </div>
   <form action="/register" method="POST">
     <p>Tunnus:<br>
     <input type="text" name="username" minlength="5" maxlength="20"></p>
@@ -39,6 +53,7 @@
   </form>
   <hr>
   {% endif %}
+</div>
 </body>
 
 </html>

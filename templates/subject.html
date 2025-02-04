@@ -2,16 +2,25 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="/static/main.css">
   <title>Ketjut</title>
 </head>
 
 <body>
-  <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
-  <a href="/frontpage">Etusivu</a> <br>
-  <h1>Kaikki ketjut:</h1>
+<div class="content">
+  <div class="nav">
+    <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+    <a href="/frontpage">Etusivu</a> <br>
+  </div>
+  <div class="header">
+    <h1>Kaikki ketjut:</h1>
+  </div>
   {% for c in content %}
   {{ c.threadname }} (luonut: {{ c.username }})
-  <a href="/thread/{{ c.threadid }}"><b>Siirry</b></a> <br>
+  <div class="nav">
+    <a href="/thread/{{ c.threadid }}"><b>Siirry</b></a>
+  </div>
+  <br>
   <form action="/modify" method="POST">
     <input type="hidden" name="level" value="T">
     <input type="hidden" name="username" value={{ session.username }}>
@@ -22,7 +31,7 @@
     <button type="submit">muokkaa</button>
     <button type="submit" formaction="/delete">poista</button>
   </form>
-  <br>
+  <hr>
   {% endfor %}
   <br>
   <form action="/add" method="POST">
@@ -35,6 +44,7 @@
     <br>
     <input type="submit" value="Lisää">
   </form>
+</div>
 </body>
 
 </html>

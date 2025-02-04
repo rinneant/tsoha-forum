@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+  <link rel="stylesheet" href="/static/main.css">
+</head>
+
 <body>
+<div class="nav">
+  <a href="/frontpage">Siirry etusivulle</a> <br>
+  <a href="/logout">Kirjaudu ulos</a>
+</div>
+<div class="content">
   <form action="/add" method="POST">
     Muokkaa omaa ketjuasi (raja 300 merkkiä)/viestiäsi (raja 700 merkkiä):<br>
     <textarea name="allcontent" rows="5" cols="60" minlength="5" maxlength={{ len }}>{{ content }}</textarea>
@@ -12,6 +21,7 @@
     <br>
     <input type="submit" value="Muokkaa ketjua/viestiä">
   </form>
+</div>
 </body>
 
 </html>

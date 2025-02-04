@@ -2,16 +2,29 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="/static/main.css">
   <title>Etusivu</title>
 </head>
 
 <body>
+<div class="content">
   <p>HEI, <b>{{ session.username }}</b></p>
-  <a href="/logout"><b>Kirjaudu ulos</b></a>
+  <div class="nav">
+    <a href="/logout"><b>Kirjaudu ulos</b></a>
+  </div>
   <br>
-  <br>
+  <hr>
+  <form action="/subjectdelete" method="POST">
+    <div class="obs">
+      <label for="sub">Jos olet admin, kirjoita (salaisen) alueen nimi, jonka haluat poistaa:</label>
+    </div> <br>
+    <input type="text" id="sub" name="subject">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="submit" value="Poista">
+  </form>
+  <hr> <hr>
   <form action="/search" method="POST">
-    <label for="msg">Hae viestejä:</label>
+    <label for="msg">Hae viestejä:</label> <br>
     <input type="text" id="msg" name="message">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <input type="submit" value="Hae">
@@ -22,7 +35,9 @@
   KETJUT: {{ c.threadsum }} <br>
   VIESTIEN MÄÄRÄ: {{ c.messagesum }} <br>
   UUSIN VIESTI: {{ c.lastsent }} <br>
-  <a href="/subject/{{ c.subjectid }}">Siirry</a>
+  <div class="nav">
+    <a href="/subject/{{ c.subjectid }}">Siirry</a>
+  </div>
   <hr>
   {% endfor %}
   <br>
@@ -32,12 +47,14 @@
     <input type="hidden" name="level" value="subject">
     <input type="hidden" name="uname" value={{ session.username }}>
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    <br>
     <input type="submit" value="Lisää">
   </form>
   <hr>
-  <a href="/secretsubjects"><h3>Salaisille alueille</h3></a> <br>
+  <div class="nav">
+    <a href="/secretsubjects"><h3>Salaisille alueille</h3></a> <br>
+  </div>
   <hr>
+</div>
 </body>
 
 </html>

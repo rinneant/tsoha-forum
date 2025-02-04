@@ -2,12 +2,16 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="/static/main.css">
   <title>Viestit</title>
 </head>
 
 <body>
-  <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
-  <a href="/frontpage">Etusivu</a> <br>
+<div class="content">
+  <div class="nav">
+    <a href="/logout"><b>Kirjaudu ulos</b></a> <br>
+    <a href="/frontpage">Etusivu</a> <br>
+  </div>
   <p><b>{{ question }}</b> luonut: {{ creator }}</p>
   <hr> <hr>
   {% for c in content %}
@@ -37,6 +41,7 @@
     <br>
     <input type="submit" value="Lisää">
   </form>
+</div>
 </body>
 
 </html>
