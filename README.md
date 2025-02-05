@@ -15,6 +15,7 @@ Sovelluksen ominaisuuksia:
 
 
 Sovelluksen asennus
+
     - Asenna Flask
     - Asenna Flask sqlalchemy
     - Asenna Flask PostgreSQL adapter psycopg2:
