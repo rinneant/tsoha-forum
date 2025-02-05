@@ -7,9 +7,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 import secrets
 
-#Miten poistaa subject? silloin sen subjectin threadsit ja messaget ei saa näkyä
-#lisää delete subject admin oikeuksilla
-
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.secret_key = getenv("SECRET_KEY")
@@ -342,4 +339,3 @@ def secretsubjects():
         if str(content) == "[]":
             return render_template("error.html", message = "Ei salaisia keskustelualueita.")
         return render_template("secret.html", content = content)
-
